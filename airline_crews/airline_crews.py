@@ -9,19 +9,30 @@ class MaxMatching:
         line = [str(-1 if x == -1 else x + 1) for x in matching]
         print(' '.join(line))
 
+    def dfs(self,adj_matrix,matching, seen,u,n,m):
+        for v in range(m):
+            if adj_matrix[u][v]==1 and seen[u][v]==False:
+                seen[u][v] = True
+                if(matching[v]<0 or self.dfs(adj_matrix,matching,seen,matching[v],n,m)):
+                    matching[v] = u
+                    return True
+        return False
+
     def find_matching(self, adj_matrix):
         # Replace this code with an algorithm that finds the maximum
         # matching correctly in all cases.
         n = len(adj_matrix)
         m = len(adj_matrix[0])
-        matching = [-1] * n
-        busy_right = [False] * m
-        for i in range(n):
-            for j in range(m):
-                if adj_matrix[i][j] and matching[i] == -1 and (not busy_right[j]):
-                    matching[i] = j
-                    busy_right[j] = True
-        return matching
+        matching = [-1] * m
+        seen = [[False]*m for _ in range(n)]
+        for u in range(n):
+            self.dfs(adj_matrix,matching,seen,u,n,m)
+
+        ret = [-1]*n
+        for v in range(m):
+            if matching[v]!=-1:
+                ret[matching[v]] = v        
+        return ret
 
     def solve(self):
         adj_matrix = self.read_data()

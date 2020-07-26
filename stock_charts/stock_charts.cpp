@@ -31,43 +31,53 @@ class StockCharts {
     cout << result << "\n";
   }
 
+  vector<vector<bool>> converter(const vector<vector<int>>& stock_data,int n,int k){
+    vector<vector<bool>> adj_matrix(n,vector<bool>(n,true));
+    for(int i=0;i<n;++i){
+      for(int j=0;j<n;++j){
+        for(int t=0;t<k;++t){
+          if(stock_data[i][t]>=stock_data[j][t]){
+            adj_matrix[i][j] = false;
+            break;
+          }
+        }
+      }
+    }
+    return adj_matrix;
+  }
+
+  bool dfs(const vector<vector<bool>>& adj_matrix,vector<int>& matching, vector<bool>& seen,int u,int n){
+    for(int v=0;v<n;++v){
+      if(adj_matrix[u][v] && !seen[v]){
+        seen[v] = true;
+        if(matching[v]<0 || dfs(adj_matrix,matching,seen,matching[v],n)){
+          matching[v] = u;
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   int MinCharts(const vector<vector<int>>& stock_data) {
     // Replace this incorrect greedy algorithm with an
     // algorithm that correctly finds the minimum number
     // of charts on which we can put all the stock data
     // without intersections of graphs on one chart.
 
-    int num_stocks = stock_data.size();
+    int n = stock_data.size();
+    int k = stock_data[0].size();
     // Vector of charts; each chart is a vector of indices of individual stocks.
-    vector<vector<int>> charts;
-    for (int i = 0; i < stock_data.size(); ++i) {
-      bool added = false;
-      for (auto& chart : charts) {
-        bool can_add = true;
-        for (int index : chart)
-          if (!compare(stock_data[i], stock_data[index]) &&
-              !compare(stock_data[index], stock_data[i])) {
-            can_add = false;
-            break;
-          }
-        if (can_add) {
-          chart.push_back(i);
-          added = true;
-          break;
-        }
-      }
-      if (!added) {
-        charts.emplace_back(vector<int>{i});
-      }
+    vector<vector<bool>> adj_matrix = converter(stock_data,n,k);
+    vector<int> matching(n,-1);
+    int ans=0;
+    for(int u=0;u<n;++u){
+      vector<bool> seen(n,false);
+      if(dfs(adj_matrix,matching,seen,u,n))
+        ans++;
     }
-    return charts.size();
-  }
-
-  bool compare(const vector<int>& stock1, const vector<int>& stock2) {
-    for (int i = 0; i < stock1.size(); ++i)
-      if (stock1[i] >= stock2[i])
-        return false;
-    return true;
+    
+    return n-ans;
   }
 };
 
